@@ -35,12 +35,12 @@
 				<a href="/">Inicio</a>
 			</li>
 			{#if isLoggedIn}
-				<li aria-current={page.url.pathname.startsWith('/dashboard') ? 'page' : undefined}>
+				<!-- <li aria-current={page.url.pathname.startsWith('/dashboard') ? 'page' : undefined}>
 					<a href="/competencias">competencias</a>
 				</li>
 								<li aria-current={page.url.pathname.startsWith('/dashboard') ? 'page' : undefined}>
 					<a href="/dashboard">Dashboard</a>
-				</li>
+				</li> -->
 			{:else}
 				<li aria-current={page.url.pathname === '/login' ? 'page' : undefined}>
 					<a href="/login">Iniciar Sesión</a>
