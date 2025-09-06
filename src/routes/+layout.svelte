@@ -22,16 +22,13 @@
 				<h4>Enlaces</h4>
 				<ul>
 					<li><a href="/">Inicio</a></li>
-					<li><a href="/about">Acerca de</a></li>
-					<li><a href="/contact">Contacto</a></li>
 				</ul>
 			</div>
 			<div class="footer-section">
 				<h4>Soporte</h4>
 				<ul>
 					<li><a href="/help">Ayuda</a></li>
-					<li><a href="/privacy">Privacidad</a></li>
-					<li><a href="/terms">Términos</a></li>
+
 				</ul>
 			</div>
 		</div>
