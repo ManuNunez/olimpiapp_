@@ -9,7 +9,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000
  */
 export async function apiRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
     const config = {
         headers: {
             'Content-Type': 'application/json',
@@ -29,7 +28,8 @@ export async function apiRequest(endpoint, options = {}) {
         const response = await fetch(url, config);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const errorData = await response.json();
+            throw new Error(`HTTP error! status: ${response.status}`, { cause: errorData });
         }
         
         return await response.json();
@@ -41,7 +41,7 @@ export async function apiRequest(endpoint, options = {}) {
 
 /**
  * GET request
- * @param {string} endpoint 
+ * @param {string} endpoint
  * @returns {Promise}
  */
 export function get(endpoint) {
@@ -50,8 +50,8 @@ export function get(endpoint) {
 
 /**
  * POST request
- * @param {string} endpoint 
- * @param {Object} data 
+ * @param {string} endpoint
+ * @param {Object} data
  * @returns {Promise}
  */
 export function post(endpoint, data = {}) {
@@ -63,8 +63,8 @@ export function post(endpoint, data = {}) {
 
 /**
  * PUT request
- * @param {string} endpoint 
- * @param {Object} data 
+ * @param {string} endpoint
+ * @param {Object} data
  * @returns {Promise}
  */
 export function put(endpoint, data = {}) {
@@ -76,7 +76,7 @@ export function put(endpoint, data = {}) {
 
 /**
  * DELETE request
- * @param {string} endpoint 
+ * @param {string} endpoint
  * @returns {Promise}
  */
 export function del(endpoint) {
@@ -87,23 +87,62 @@ export function del(endpoint) {
  * Authentication helpers
  */
 export const auth = {
+    /**
+     * Login user
+     * @param {Object} credentials - {email, password}
+     * @returns {Promise}
+     */
     login: async (credentials) => {
-        const response = await post('/auth/login', credentials);
-        if (response.token) {
-            localStorage.setItem('auth_token', response.token);
+        const response = await post('/login', credentials);
+        if (response.access_token) {
+            localStorage.setItem('auth_token', response.access_token);
         }
         return response;
     },
-    
-    logout: () => {
+
+    /**
+     * Register new user
+     * @param {Object} userData - User registration data
+     * @returns {Promise}
+     */
+    register: async (userData) => {
+        const response = await post('/register', userData);
+        if (response.access_token) {
+            localStorage.setItem('auth_token', response.access_token);
+        }
+        return response;
+    },
+
+    /**
+     * Logout current user
+     * @returns {Promise}
+     */
+    logout: async () => {
+        await post('/logout');
         localStorage.removeItem('auth_token');
     },
-    
+
+    /**
+     * Check if user is logged in
+     * @returns {boolean}
+     */
     isLoggedIn: () => {
         return !!localStorage.getItem('auth_token');
     },
-    
+
+    /**
+     * Get current auth token
+     * @returns {string|null}
+     */
     getToken: () => {
         return localStorage.getItem('auth_token');
+    },
+
+    /**
+     * Get current user info
+     * @returns {Promise}
+     */
+    me: async () => {
+        return await get('/me');
     }
 };

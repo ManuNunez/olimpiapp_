@@ -36,13 +36,10 @@
 			</li>
 			{#if isLoggedIn}
 				<li aria-current={page.url.pathname.startsWith('/dashboard') ? 'page' : undefined}>
+					<a href="/competencias">competencias</a>
+				</li>
+								<li aria-current={page.url.pathname.startsWith('/dashboard') ? 'page' : undefined}>
 					<a href="/dashboard">Dashboard</a>
-				</li>
-				<li aria-current={page.url.pathname.startsWith('/competitions') ? 'page' : undefined}>
-					<a href="/dashboard/competitions">Competencias</a>
-				</li>
-				<li aria-current={page.url.pathname.startsWith('/participants') ? 'page' : undefined}>
-					<a href="/dashboard/participants">Participantes</a>
 				</li>
 			{:else}
 				<li aria-current={page.url.pathname === '/login' ? 'page' : undefined}>
@@ -57,7 +54,7 @@
 
 	<div class="user-actions">
 		{#if isLoggedIn}
-			<a href="/dashboard" class="user-link">
+			<a href="/account" class="user-link">
 				<span class="user-icon">👤</span>
 				Perfil
 			</a>

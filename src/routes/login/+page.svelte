@@ -18,7 +18,7 @@
 			
 			if (response.token) {
 				// Redirigir al usuario a la página desde la que vino o al dashboard
-				const returnUrl = $page.url.searchParams.get('returnUrl') || '/dashboard';
+				const returnUrl = $page.url.searchParams.get('returnUrl') || '/acount';
 				goto(returnUrl);
 			}
 		} catch (err) {
@@ -82,6 +82,7 @@
 	</div>
 </div>
 
+
 <style>
 	.auth-container {
 		display: flex;
@@ -117,7 +118,7 @@
 		color: #555;
 	}
 	
-	input {
+	input, select {
 		width: 100%;
 		padding: 0.75rem;
 		border: 1px solid #ddd;
@@ -126,12 +127,13 @@
 		transition: border-color 0.3s;
 	}
 	
-	input:focus {
+	input:focus, select:focus {
 		outline: none;
-		border-color: #007bff;
+		border-color: #360f69; /* rojo para focus */
+		box-shadow: 0 0 0 2px rgba(189, 42, 46, 0.2);
 	}
 	
-	input:disabled {
+	input:disabled, select:disabled {
 		background-color: #f8f9fa;
 		cursor: not-allowed;
 	}
@@ -139,7 +141,7 @@
 	.btn-primary {
 		width: 100%;
 		padding: 0.75rem;
-		background: #007bff;
+		background: #360f69; /* rojo para botones */
 		color: white;
 		border: none;
 		border-radius: 4px;
@@ -149,7 +151,7 @@
 	}
 	
 	.btn-primary:hover:not(:disabled) {
-		background: #0056b3;
+		background: #360f69; /* versión más oscura para hover */
 	}
 	
 	.btn-primary:disabled {
@@ -166,6 +168,16 @@
 		border: 1px solid #f5c6cb;
 	}
 	
+	.success {
+		color: #155724;
+		margin-bottom: 1rem;
+		padding: 0.5rem;
+		background: #d4edda;
+		border-radius: 4px;
+		border: 1px solid #c3e6cb;
+		text-align: center;
+	}
+	
 	.auth-links {
 		text-align: center;
 		margin-top: 1.5rem;
@@ -174,7 +186,7 @@
 	.auth-links a {
 		display: block;
 		margin-bottom: 0.5rem;
-		color: #007bff;
+		color: #360f69; /* rojo para enlaces */
 		text-decoration: none;
 	}
 	

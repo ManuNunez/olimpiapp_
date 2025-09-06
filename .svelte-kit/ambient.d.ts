@@ -26,6 +26,7 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const VITE_API_BASE_URL: string;
 	export const TMUX: string;
 	export const USER: string;
 	export const npm_config_user_agent: string;
@@ -137,6 +138,7 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		VITE_API_BASE_URL: string;
 		TMUX: string;
 		USER: string;
 		npm_config_user_agent: string;
