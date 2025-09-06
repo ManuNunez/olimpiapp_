@@ -129,7 +129,7 @@
 	
 	input:focus, select:focus {
 		outline: none;
-		border-color: #360f69; /* rojo para focus */
+		border-color: #BD2A2E; /* rojo para focus */
 		box-shadow: 0 0 0 2px rgba(189, 42, 46, 0.2);
 	}
 	
@@ -141,7 +141,7 @@
 	.btn-primary {
 		width: 100%;
 		padding: 0.75rem;
-		background: #360f69; /* rojo para botones */
+		background: #BD2A2E; /* rojo para botones */
 		color: white;
 		border: none;
 		border-radius: 4px;
@@ -151,7 +151,7 @@
 	}
 	
 	.btn-primary:hover:not(:disabled) {
-		background: #360f69; /* versión más oscura para hover */
+		background: #BD2A2E; /* versión más oscura para hover */
 	}
 	
 	.btn-primary:disabled {
@@ -186,7 +186,7 @@
 	.auth-links a {
 		display: block;
 		margin-bottom: 0.5rem;
-		color: #360f69; /* rojo para enlaces */
+		color: #BD2A2E; /* rojo para enlaces */
 		text-decoration: none;
 	}
 	

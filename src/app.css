@@ -11,8 +11,8 @@
 	--color-light-gray: #B2BEBF;
 	--color-medium-gray: #889C9B;
 	--color-dark-teal: #486966;
-	--color-charcoal: #696866;
-	--color-red: #360f69;
+	--color-charcoal: #3B3936;
+	--color-red: #BD2A2E;
 	
 	/* Variables semánticas */
 	--color-primary: var(--color-red);
