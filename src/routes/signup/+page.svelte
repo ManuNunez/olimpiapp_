@@ -9,7 +9,7 @@
 	let isLoading = false;
 	let error = "";
 	let success = "";
-
+	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 	async function handleSignup(e) {
 		e.preventDefault();
 		error = "";
@@ -17,7 +17,7 @@
 		isLoading = true;
 
 		try {
-			const res = await fetch("http://localhost:8000/api/register", {
+			const res = await fetch(`${API_BASE_URL}/api/register`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -42,11 +42,10 @@
 				localStorage.setItem("auth_token", data.access_token);
 				localStorage.setItem("token_type", data.token_type); // normalmente "Bearer"
 				localStorage.setItem("user", JSON.stringify(data.user));
-				
+
 				setTimeout(() => {
 					window.location.href = "/";
 				}, 1500);
-				
 			}
 		} catch (err) {
 			error = "No se pudo conectar con el servidor";
@@ -228,7 +227,7 @@
 	}
 
 	.btn-primary:hover:not(:disabled) {
-		background: #BD2A2E;
+		background: #bd2a2e;
 	}
 
 	.btn-primary:disabled {
