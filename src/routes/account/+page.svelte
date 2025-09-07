@@ -52,17 +52,19 @@
     }
   }
 
-  async function handleLogout() {
-    try {
-      await auth.logout();
-    } catch (err) {
-      console.error('Error en logout:', err);
-    } finally {
-      // Forzar logout local incluso si falla la API
-      localStorage.removeItem('auth_token');
-      goto('/login');
-    }
+async function handleLogout() {
+  try {
+    await auth.logout();
+  } catch (err) {
+    console.error('Error en logout:', err);
+  } finally {
+    // Forzar logout local incluso si falla la API
+    localStorage.removeItem('auth_token');
+    
+    // Redirigir a la página principal y recargar completamente
+    window.location.href = '/';
   }
+}
 
   function startEditing() {
     isEditing = true;

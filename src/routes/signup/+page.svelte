@@ -45,7 +45,7 @@
 
 				setTimeout(() => {
 					window.location.href = "/";
-				}, 1500);
+				}, 500);
 			}
 		} catch (err) {
 			error = "No se pudo conectar con el servidor";

@@ -16,10 +16,9 @@
 		try {
 			const response = await auth.login({ email, password });
 			
-			if (response.token) {
-				// Redirigir al usuario a la página desde la que vino o al dashboard
-				const returnUrl = $page.url.searchParams.get('returnUrl') || '/acount';
-				goto(returnUrl);
+			if (response.access_token) {
+				window.location.href = '/';
+
 			}
 		} catch (err) {
 			error = err.message || 'Error al iniciar sesión';
@@ -77,7 +76,7 @@
 		
 		<div class="auth-links">
 			<a href="/signup">¿No tienes cuenta? Regístrate</a>
-			<a href="/forgot-password">¿Olvidaste tu contraseña?</a>
+			<a href="/help">¿Olvidaste tu contraseña?</a>
 		</div>
 	</div>
 </div>
