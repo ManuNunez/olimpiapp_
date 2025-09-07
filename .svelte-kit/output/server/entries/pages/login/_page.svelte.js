@@ -18,7 +18,7 @@ function _page($$payload, $$props) {
     $$payload.out += "<!--[!-->";
     $$payload.out += `Iniciar Sesión`;
   }
-  $$payload.out += `<!--]--></button></form> <div class="auth-links svelte-1gi6e0m"><a href="/signup" class="svelte-1gi6e0m">¿No tienes cuenta? Regístrate</a> <a href="/forgot-password" class="svelte-1gi6e0m">¿Olvidaste tu contraseña?</a></div></div></div>`;
+  $$payload.out += `<!--]--></button></form> <div class="auth-links svelte-1gi6e0m"><a href="/signup" class="svelte-1gi6e0m">¿No tienes cuenta? Regístrate</a> <a href="/help" class="svelte-1gi6e0m">¿Olvidaste tu contraseña?</a></div></div></div>`;
   pop();
 }
 export {
