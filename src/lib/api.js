@@ -1,12 +1,5 @@
-// API configuration for Laravel backend
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
-/**
- * Generic API request function
- * @param {string} endpoint - API endpoint (without /api prefix)
- * @param {Object} options - Fetch options
- * @returns {Promise} Response data
- */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
@@ -18,7 +11,6 @@ export async function apiRequest(endpoint, options = {}) {
     ...options
   };
 
-  // Add authentication token if available
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
@@ -37,21 +29,10 @@ export async function apiRequest(endpoint, options = {}) {
   }
 }
 
-/**
- * GET request
- * @param {string} endpoint
- * @returns {Promise}
- */
 export function get(endpoint) {
   return apiRequest(endpoint, { method: 'GET' });
 }
 
-/**
- * POST request
- * @param {string} endpoint
- * @param {Object} data
- * @returns {Promise}
- */
 export function post(endpoint, data = {}) {
   return apiRequest(endpoint, {
     method: 'POST',
@@ -59,12 +40,6 @@ export function post(endpoint, data = {}) {
   });
 }
 
-/**
- * PUT request
- * @param {string} endpoint
- * @param {Object} data
- * @returns {Promise}
- */
 export function put(endpoint, data = {}) {
   return apiRequest(endpoint, {
     method: 'PUT',
@@ -72,31 +47,16 @@ export function put(endpoint, data = {}) {
   });
 }
 
-/**
- * DELETE request
- * @param {string} endpoint
- * @returns {Promise}
- */
 export function del(endpoint) {
   return apiRequest(endpoint, { method: 'DELETE' });
 }
 
-// Constantes de roles
 export const ROLES = {
   STUDENT: 2,
   TEACHER: 3,
-  // Agrega otros roles según los tengas
 };
 
-/**
- * Authentication helpers
- */
 export const auth = {
-  /**
-   * Login user
-   * @param {Object} credentials - {email, password}
-   * @returns {Promise}
-   */
   login: async (credentials) => {
     const response = await post('/login', credentials);
     if (response.access_token) {
@@ -105,11 +65,6 @@ export const auth = {
     return response;
   },
 
-  /**
-   * Register new user
-   * @param {Object} userData - User registration data
-   * @returns {Promise}
-   */
   register: async (userData) => {
     const response = await post('/register', userData);
     if (response.access_token) {
@@ -118,55 +73,27 @@ export const auth = {
     return response;
   },
 
-  /**
-   * Logout current user
-   * @returns {Promise}
-   */
   logout: async () => {
     await post('/logout');
     localStorage.removeItem('auth_token');
   },
 
-  /**
-   * Check if user is logged in
-   * @returns {boolean}
-   */
   isLoggedIn: () => {
     return !!localStorage.getItem('auth_token');
   },
 
-  /**
-   * Get current auth token
-   * @returns {string|null}
-   */
   getToken: () => {
     return localStorage.getItem('auth_token');
   },
 
-  /**
-   * Get current user info
-   * @returns {Promise}
-   */
   me: async () => {
     return await get('/me');
   },
 
-  /**
-   * Update user profile
-   * @param {Object} userData - User data to update
-   * @returns {Promise}
-   */
   updateProfile: async (userData) => {
     return await put('/me', userData);
   },
 
-  // ====== FUNCIONES DE ROLES ======
-
-  /**
-   * Obtener roles de un usuario específico
-   * @param {number} userId - ID del usuario
-   * @returns {Promise}
-   */
   getUserRoles: async (userId) => {
     try {
       return await get(`/users/${userId}/roles`);
@@ -176,12 +103,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Verificar si un usuario tiene un rol específico
-   * @param {number} userId - ID del usuario
-   * @param {number} roleId - ID del rol
-   * @returns {Promise}
-   */
   checkUserHasRole: async (userId, roleId) => {
     try {
       return await post('/users/check-role', {
@@ -194,12 +115,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Verificar si un usuario tiene un rol específico (usando GET)
-   * @param {number} userId - ID del usuario
-   * @param {number} roleId - ID del rol
-   * @returns {Promise}
-   */
   checkUserHasRoleByParams: async (userId, roleId) => {
     try {
       return await get(`/users/${userId}/roles/${roleId}/check`);
@@ -209,11 +124,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Función helper para verificar si el usuario actual tiene un rol específico
-   * @param {number} roleId - ID del rol a verificar
-   * @returns {Promise}
-   */
   currentUserHasRole: async (roleId) => {
     try {
       const userData = await auth.me();
@@ -224,10 +134,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Función helper para verificar si el usuario actual es estudiante
-   * @returns {Promise<boolean>}
-   */
   isCurrentUserStudent: async () => {
     try {
       const result = await auth.currentUserHasRole(ROLES.STUDENT);
@@ -238,10 +144,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Función helper para verificar si el usuario actual es maestro
-   * @returns {Promise<boolean>}
-   */
   isCurrentUserTeacher: async () => {
     try {
       const result = await auth.currentUserHasRole(ROLES.TEACHER);
@@ -252,12 +154,6 @@ export const auth = {
     }
   },
 
-  /**
-   * Obtener múltiples verificaciones de roles de una vez
-   * @param {number} userId - ID del usuario
-   * @param {Array<number>} roleIds - Array de IDs de roles a verificar
-   * @returns {Promise<Object>} Objeto con el resultado de cada rol
-   */
   checkMultipleRoles: async (userId, roleIds = [ROLES.STUDENT, ROLES.TEACHER]) => {
     try {
       const roleChecks = await Promise.allSettled(
@@ -291,6 +187,5 @@ export const auth = {
     }
   },
 
-  // ====== CONSTANTES PÚBLICAS ======
   ROLES
 };
