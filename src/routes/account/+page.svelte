@@ -1,8 +1,15 @@
+<!-- routes/account/+page.svelte -->
 <script>
   import { auth } from "$lib/api.js";
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import { browser } from "$app/environment";
+
+  // Importar componentes
+  import UserRolesCard from "$lib/components/UserRolesCard.svelte";
+  import ProfileInfoCard from "$lib/components/ProfileInfoCard.svelte";
+  import StudentsManagementCard from "$lib/components/StudentsManagementCard.svelte";
+  import SchoolInfoCard from "$lib/components/SchoolInfoCard.svelte";
 
   let user = null;
   let isLoading = true;
@@ -204,30 +211,70 @@
     }
   }
 
-  async function deleteStudent(studentId) {
-    if (!isTeacher) {
-      alert("No tienes permisos para eliminar alumnos");
-      return;
-    }
+  // Handlers para ProfileInfoCard
+  function handleStartEditing() {
+    isEditing = true;
+    // Reinicializar el formulario con los datos actuales
+    editForm = {
+      name: user.name || "",
+      email: user.email || "",
+      username: user.username || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      bio: user.bio || "",
+      date_of_birth: user.date_of_birth ? user.date_of_birth.split("T")[0] : "",
+      gender: user.gender || "",
+      occupation: user.occupation || "",
+      website: user.website || "",
+    };
+  }
 
-    if (!confirm("¿Estás seguro de que quieres eliminar este alumno?")) {
-      return;
-    }
+  function handleCancelEditing() {
+    isEditing = false;
+    editForm = {
+      name: user.name || "",
+      email: user.email || "",
+      username: user.username || "",
+      phone: user.phone || "",
+      address: user.address || "",
+      bio: user.bio || "",
+      date_of_birth: user.date_of_birth ? user.date_of_birth.split("T")[0] : "",
+      gender: user.gender || "",
+      occupation: user.occupation || "",
+      website: user.website || "",
+    };
+  }
 
+  async function handleUpdateProfile() {
     try {
-      // Aquí deberías hacer la llamada a tu API para eliminar el alumno
-      // await auth.deleteStudent(studentId);
+      isUpdating = true;
+      error = null;
 
-      // Por ahora solo lo quitamos del array local
-      students = students.filter((student) => student.id !== studentId);
-      alert("Alumno eliminado correctamente");
+      const updatedUser = await auth.updateProfile(editForm);
+
+      user = updatedUser;
+      isEditing = false;
+
+      // Mostrar mensaje de éxito
+      alert("Perfil actualizado correctamente");
     } catch (err) {
-      console.error("Error eliminando alumno:", err);
-      alert("Error al eliminar el alumno");
+      console.error("Error actualizando perfil:", err);
+      error = "Error al actualizar el perfil";
+    } finally {
+      isUpdating = false;
     }
   }
 
-  async function addStudent() {
+  // Handlers para StudentsManagementCard
+  function handleToggleAddStudentForm() {
+    showAddStudentForm = !showAddStudentForm;
+    if (!showAddStudentForm) {
+      // Limpiar formulario al cerrar
+      newStudent = { name: "", username: "", email: "", password: "" };
+    }
+  }
+
+  async function handleAddStudent() {
     if (!isTeacher) {
       alert("No tienes permisos para agregar alumnos");
       return;
@@ -264,7 +311,31 @@
     }
   }
 
-  async function updateSchoolInfo() {
+  async function handleDeleteStudent(studentId) {
+    if (!isTeacher) {
+      alert("No tienes permisos para eliminar alumnos");
+      return;
+    }
+
+    try {
+      // Aquí deberías hacer la llamada a tu API para eliminar el alumno
+      // await auth.deleteStudent(studentId);
+
+      // Por ahora solo lo quitamos del array local
+      students = students.filter((student) => student.id !== studentId);
+      alert("Alumno eliminado correctamente");
+    } catch (err) {
+      console.error("Error eliminando alumno:", err);
+      alert("Error al eliminar el alumno");
+    }
+  }
+
+  // Handlers para SchoolInfoCard
+  function handleToggleSchoolEdit() {
+    isEditingSchool = !isEditingSchool;
+  }
+
+  async function handleUpdateSchoolInfo() {
     if (!isStudent) {
       alert("No tienes permisos para actualizar la información de la escuela");
       return;
@@ -299,146 +370,6 @@
       window.location.href = "/";
     }
   }
-
-  function startEditing() {
-    isEditing = true;
-    // Reinicializar el formulario con los datos actuales
-    editForm = {
-      name: user.name || "",
-      email: user.email || "",
-      username: user.username || "",
-      phone: user.phone || "",
-      address: user.address || "",
-      bio: user.bio || "",
-      date_of_birth: user.date_of_birth ? user.date_of_birth.split("T")[0] : "",
-      gender: user.gender || "",
-      occupation: user.occupation || "",
-      website: user.website || "",
-    };
-  }
-
-  function cancelEditing() {
-    isEditing = false;
-    editForm = {
-      name: user.name || "",
-      email: user.email || "",
-      username: user.username || "",
-      phone: user.phone || "",
-      address: user.address || "",
-      bio: user.bio || "",
-      date_of_birth: user.date_of_birth ? user.date_of_birth.split("T")[0] : "",
-      gender: user.gender || "",
-      occupation: user.occupation || "",
-      website: user.website || "",
-    };
-  }
-
-  async function handleUpdateProfile() {
-    try {
-      isUpdating = true;
-      error = null;
-
-      const updatedUser = await auth.updateProfile(editForm);
-
-      user = updatedUser;
-      isEditing = false;
-
-      // Mostrar mensaje de éxito
-      alert("Perfil actualizado correctamente");
-    } catch (err) {
-      console.error("Error actualizando perfil:", err);
-      error = "Error al actualizar el perfil";
-    } finally {
-      isUpdating = false;
-    }
-  }
-
-  function formatDate(dateString) {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
-
-  function formatSimpleDate(dateString) {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
-
-  // Función para obtener todos los campos del usuario excepto el ID
-  function getUserFields(user) {
-    const fieldsToShow = [
-      { key: "name", label: "Nombre", type: "text" },
-      { key: "email", label: "Email", type: "email" },
-      { key: "username", label: "Usuario", type: "text" },
-      { key: "phone", label: "Teléfono", type: "tel" },
-      { key: "address", label: "Dirección", type: "text" },
-      { key: "bio", label: "Biografía", type: "textarea" },
-      { key: "date_of_birth", label: "Fecha de Nacimiento", type: "date" },
-      {
-        key: "gender",
-        label: "Género",
-        type: "select",
-        options: ["", "masculino", "femenino", "otro"],
-      },
-      { key: "occupation", label: "Ocupación", type: "text" },
-      { key: "website", label: "Sitio Web", type: "url" },
-      { key: "role", label: "Rol", type: "text", readonly: true },
-      { key: "status", label: "Estado", type: "text", readonly: true },
-      {
-        key: "email_verified",
-        label: "Email Verificado",
-        type: "boolean",
-        readonly: true,
-      },
-      {
-        key: "last_login",
-        label: "Último Acceso",
-        type: "datetime",
-        readonly: true,
-      },
-      {
-        key: "created_at",
-        label: "Miembro Desde",
-        type: "datetime",
-        readonly: true,
-      },
-      {
-        key: "updated_at",
-        label: "Última Actualización",
-        type: "datetime",
-        readonly: true,
-      },
-    ];
-
-    return fieldsToShow.filter(
-      (field) =>
-        user.hasOwnProperty(field.key) &&
-        field.key !== "id" &&
-        field.key !== "password" &&
-        field.key !== "password_hash",
-    );
-  }
-
-  // Función helper para obtener el nombre de los roles
-  function getRoleName(roleId) {
-    switch (roleId) {
-      case 2:
-        return "Estudiante";
-      case 3:
-        return "Maestro";
-      default:
-        return `Rol ${roleId}`;
-    }
-  }
 </script>
 
 <svelte:head>
@@ -467,337 +398,46 @@
   {:else if user}
     <div class="user-profile">
       <!-- Información de roles -->
-      {#if isLoadingRoles}
-        <div class="roles-card">
-          <div class="card-header">
-            <h2>Verificando roles...</h2>
-          </div>
-          <div class="loading-spinner"></div>
-        </div>
-      {:else}
-        <div class="roles-card">
-          <div class="card-header">
-            <h2>Roles del Usuario</h2>
-          </div>
-          <div class="roles-info">
-            {#if userRoles.length > 0}
-              <div class="roles-list">
-                <p><strong>Roles asignados:</strong></p>
-                <ul>
-                  {#each userRoles as role}
-                    <li class="role-item">
-                      <span
-                        class="role-badge"
-                        class:student={role.id === 2}
-                        class:teacher={role.id === 3}
-                      >
-                        {getRoleName(role.id)}
-                      </span>
-                    </li>
-                  {/each}
-                </ul>
-              </div>
-              <div class="role-status">
-                <div class="status-item" class:active={isStudent}>
-                  <span class="status-indicator"></span>
-                  Estudiante
-                </div>
-                <div class="status-item" class:active={isTeacher}>
-                  <span class="status-indicator"></span>
-                  Maestro
-                </div>
-              </div>
-            {:else}
-              <div class="no-roles">
-                <p>No se encontraron roles asignados para este usuario.</p>
-              </div>
-            {/if}
-          </div>
-        </div>
-      {/if}
+      <UserRolesCard 
+        {userRoles}
+        {isStudent}
+        {isTeacher}
+        {isLoadingRoles}
+      />
 
       <!-- Información básica -->
-      <div class="profile-card">
-        <div class="card-header">
-          <h2>Información Personal</h2>
-          {#if !isEditing}
-            <button class="edit-btn" on:click={startEditing}>
-              Editar Perfil
-            </button>
-          {/if}
-        </div>
-
-        {#if isEditing}
-          <!-- Formulario de edición -->
-          <form
-            on:submit|preventDefault={handleUpdateProfile}
-            class="edit-form"
-          >
-            {#each getUserFields(user) as field}
-              {#if !field.readonly}
-                <div class="form-group">
-                  <label for={field.key}>{field.label}:</label>
-
-                  {#if field.type === "textarea"}
-                    <textarea
-                      id={field.key}
-                      bind:value={editForm[field.key]}
-                      placeholder={`Tu ${field.label.toLowerCase()}`}
-                      rows="3"
-                    ></textarea>
-                  {:else if field.type === "select"}
-                    <select id={field.key} bind:value={editForm[field.key]}>
-                      {#each field.options as option}
-                        <option value={option}
-                          >{option || "Seleccionar..."}</option
-                        >
-                      {/each}
-                    </select>
-                  {:else}
-                    <input
-                      id={field.key}
-                      type={field.type}
-                      bind:value={editForm[field.key]}
-                      placeholder={field.type === "email"
-                        ? "tu@email.com"
-                        : field.type === "url"
-                          ? "https://tusitio.com"
-                          : `Tu ${field.label.toLowerCase()}`}
-                      required={field.key === "email" || field.key === "name"}
-                    />
-                  {/if}
-                </div>
-              {/if}
-            {/each}
-
-            <div class="form-actions">
-              <button type="submit" class="save-btn" disabled={isUpdating}>
-                {isUpdating ? "Guardando..." : "Guardar Cambios"}
-              </button>
-              <button
-                type="button"
-                class="cancel-btn"
-                on:click={cancelEditing}
-                disabled={isUpdating}
-              >
-                Cancelar
-              </button>
-            </div>
-          </form>
-        {:else}
-          <!-- Vista de información -->
-          <div class="profile-info">
-            {#each getUserFields(user) as field}
-              <div class="info-item">
-                <label>{field.label}:</label>
-                <span>
-                  {#if field.type === "boolean"}
-                    {user[field.key] ? "Sí" : "No"}
-                  {:else if field.type === "datetime"}
-                    {formatDate(user[field.key])}
-                  {:else if field.type === "date"}
-                    {formatSimpleDate(user[field.key])}
-                  {:else if field.key === "website" && user[field.key]}
-                    <a
-                      href={user[field.key]}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {user[field.key]}
-                    </a>
-                  {:else if field.key === "email"}
-                    <a href={`mailto:${user[field.key]}`}>{user[field.key]}</a>
-                  {:else if field.key === "phone" && user[field.key]}
-                    <a href={`tel:${user[field.key]}`}>{user[field.key]}</a>
-                  {:else}
-                    {user[field.key] || "No especificado"}
-                  {/if}
-                </span>
-              </div>
-            {/each}
-          </div>
-        {/if}
-      </div>
+      <ProfileInfoCard 
+        {user}
+        {isEditing}
+        {isUpdating}
+        {editForm}
+        onStartEditing={handleStartEditing}
+        onCancelEditing={handleCancelEditing}
+        onUpdateProfile={handleUpdateProfile}
+      />
 
       <!-- Gestión de Alumnos (solo para maestros) -->
       {#if isTeacher}
-        <div class="students-card">
-          <div class="card-header">
-            <h2>Gestión de Alumnos</h2>
-            <button
-              class="add-btn"
-              on:click={() => (showAddStudentForm = !showAddStudentForm)}
-            >
-              {showAddStudentForm ? "Cancelar" : "Agregar Alumno"}
-            </button>
-          </div>
-
-          {#if showAddStudentForm}
-            <form
-              on:submit|preventDefault={addStudent}
-              class="add-student-form"
-            >
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="student-name">Nombre:</label>
-                  <input
-                    id="student-name"
-                    type="text"
-                    bind:value={newStudent.name}
-                    placeholder="Nombre completo del alumno"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="student-username">Usuario:</label>
-                  <input
-                    id="student-username"
-                    type="text"
-                    bind:value={newStudent.username}
-                    placeholder="nombre.usuario"
-                    required
-                  />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="student-email">Email:</label>
-                  <input
-                    id="student-email"
-                    type="email"
-                    bind:value={newStudent.email}
-                    placeholder="alumno@escuela.edu"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="student-password">Contraseña:</label>
-                  <input
-                    id="student-password"
-                    type="password"
-                    bind:value={newStudent.password}
-                    placeholder="Contraseña temporal"
-                    required
-                  />
-                </div>
-              </div>
-              <button type="submit" class="save-btn">Agregar Alumno</button>
-            </form>
-          {/if}
-
-          {#if isLoadingStudents}
-            <div class="loading-students">
-              <div class="loading-spinner"></div>
-              <p>Cargando alumnos...</p>
-            </div>
-          {:else if students.length > 0}
-            <div class="students-table-container">
-              <table class="students-table">
-                <thead>
-                  <tr>
-                    <th>Número</th>
-                    <th>Nombre</th>
-                    <th>Usuario</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each students as student, index}
-                    <tr>
-                      <td>{index + 1}</td>
-                      <td>{student.name}</td>
-                      <td>{student.username}</td>
-                      <td>
-                        <button
-                          class="delete-btn"
-                          on:click={() => deleteStudent(student.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-          {:else}
-            <div class="no-students">
-              <p>No hay alumnos registrados aún.</p>
-            </div>
-          {/if}
-        </div>
+        <StudentsManagementCard 
+          {students}
+          {isLoadingStudents}
+          {showAddStudentForm}
+          {newStudent}
+          onAddStudent={handleAddStudent}
+          onDeleteStudent={handleDeleteStudent}
+          onToggleAddForm={handleToggleAddStudentForm}
+        />
       {/if}
 
       <!-- Información de la Escuela (solo para alumnos) -->
       {#if isStudent}
-        <div class="school-card">
-          <div class="card-header">
-            <h2>Información de la Escuela</h2>
-            <button
-              class="edit-btn"
-              on:click={() => (isEditingSchool = !isEditingSchool)}
-            >
-              {isEditingSchool ? "Cancelar" : "Editar CCT"}
-            </button>
-          </div>
-
-          {#if isEditingSchool}
-            <form
-              on:submit|preventDefault={updateSchoolInfo}
-              class="edit-school-form"
-            >
-              <div class="form-group">
-                <label for="school-name">Nombre de la Escuela:</label>
-                <input
-                  id="school-name"
-                  type="text"
-                  value={schoolInfo.name}
-                  placeholder="Nombre completo de la escuela"
-                  disabled
-                  class="disabled-field"
-                />
-                <small class="field-note"
-                  >El nombre de la escuela no puede ser modificado</small
-                >
-              </div>
-              <div class="form-group">
-                <label for="school-cct">CCT (Clave de Centro de Trabajo):</label
-                >
-                <input
-                  id="school-cct"
-                  type="text"
-                  bind:value={schoolInfo.cct}
-                  placeholder="Ej: 06DPR0123X"
-                  pattern="[0-9]{2}[A-Z]{3}[0-9]{4}[A-Z]{1}"
-                  title="Formato: 06DPR0123X"
-                  required
-                />
-              </div>
-              <div class="form-actions">
-                <button
-                  type="submit"
-                  class="save-btn"
-                  disabled={isUpdatingSchool}
-                >
-                  {isUpdatingSchool ? "Guardando..." : "Guardar CCT"}
-                </button>
-              </div>
-            </form>
-          {:else}
-            <div class="school-info">
-              <div class="info-item">
-                <label>Nombre de la Escuela:</label>
-                <span>{schoolInfo.name || "No especificado"}</span>
-              </div>
-              <div class="info-item">
-                <label>CCT:</label>
-                <span class="cct-display"
-                  >{schoolInfo.cct || "No especificado"}</span
-                >
-              </div>
-            </div>
-          {/if}
-        </div>
+        <SchoolInfoCard 
+          {schoolInfo}
+          {isEditingSchool}
+          {isUpdatingSchool}
+          onToggleEdit={handleToggleSchoolEdit}
+          onUpdateSchoolInfo={handleUpdateSchoolInfo}
+        />
       {/if}
 
       <!-- Mensaje para usuarios sin roles específicos -->
@@ -911,17 +551,12 @@
   }
 
   /* Loading */
-  .loading-container,
-  .loading-students {
+  .loading-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 4rem 0;
-  }
-
-  .loading-students {
-    padding: 2rem 0;
   }
 
   .loading-spinner {
@@ -976,13 +611,9 @@
     gap: 2rem;
   }
 
-  .profile-card,
+  .no-role-card,
   .stats-card,
-  .actions-card,
-  .students-card,
-  .school-card,
-  .roles-card,
-  .no-role-card {
+  .actions-card {
     background: white;
     border-radius: 12px;
     padding: 2rem;
@@ -1002,305 +633,12 @@
     color: #343a40;
   }
 
-  .edit-btn,
-  .add-btn {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: background-color 0.3s;
-  }
-
-  .edit-btn:hover,
-  .add-btn:hover {
-    background: #0056b3;
-  }
-
-  /* Roles Card */
-  .roles-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .roles-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .role-item {
-    display: inline-block;
-  }
-
-  .role-badge {
-    display: inline-block;
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    background: #6c757d;
-    color: white;
-  }
-
-  .role-badge.student {
-    background: #28a745;
-  }
-
-  .role-badge.teacher {
-    background: #007bff;
-  }
-
-  .role-status {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-  }
-
-  .status-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    background: white;
-    border: 2px solid #dee2e6;
-    color: #6c757d;
-    transition: all 0.3s;
-  }
-
-  .status-item.active {
-    border-color: #28a745;
-    color: #155724;
-    background: #d4edda;
-  }
-
-  .status-indicator {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #6c757d;
-    transition: background-color 0.3s;
-  }
-
-  .status-item.active .status-indicator {
-    background: #28a745;
-  }
-
-  .no-roles,
   .no-role-content {
     text-align: center;
     padding: 2rem;
     color: #6c757d;
     background: #f8f9fa;
     border-radius: 8px;
-  }
-
-  /* Profile Info */
-  .profile-info,
-  .school-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f8f9fa;
-  }
-
-  .info-item label {
-    font-weight: 600;
-    color: #495057;
-    min-width: 200px;
-  }
-
-  .info-item span {
-    color: #343a40;
-    text-align: right;
-    flex: 1;
-  }
-
-  .info-item span a {
-    color: #007bff;
-    text-decoration: none;
-  }
-
-  .info-item span a:hover {
-    text-decoration: underline;
-  }
-
-  .cct-display {
-    font-family: "Courier New", monospace !important;
-    font-weight: 500 !important;
-    background-color: #f8f9fa !important;
-    padding: 0.25rem 0.5rem !important;
-    border-radius: 4px !important;
-    border: 1px solid #dee2e6 !important;
-  }
-
-  /* Students Table */
-  .students-table-container {
-    overflow-x: auto;
-    margin-top: 1rem;
-  }
-
-  .students-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .students-table th,
-  .students-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #dee2e6;
-  }
-
-  .students-table th {
-    background: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-  }
-
-  .students-table tbody tr:hover {
-    background: #f8f9fa;
-  }
-
-  .delete-btn {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 0.4rem 0.8rem;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: background-color 0.3s;
-  }
-
-  .delete-btn:hover {
-    background: #c82333;
-  }
-
-  .no-students {
-    text-align: center;
-    padding: 2rem;
-    color: #6c757d;
-    background: #f8f9fa;
-    border-radius: 8px;
-    margin-top: 1rem;
-  }
-
-  /* Add Student Form */
-  .add-student-form,
-  .edit-school-form {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  /* Edit Form */
-  .edit-form,
-  .edit-school-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-group label {
-    font-weight: 600;
-    color: #495057;
-  }
-
-  .form-group input,
-  .form-group textarea,
-  .form-group select {
-    padding: 0.75rem;
-    border: 2px solid #e9ecef;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s;
-    font-family: inherit;
-  }
-
-  .form-group input:focus,
-  .form-group textarea:focus,
-  .form-group select:focus {
-    outline: none;
-    border-color: #007bff;
-  }
-
-  .form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-  }
-
-  .form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-  }
-
-  .save-btn,
-  .cancel-btn {
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-weight: 500;
-    cursor: pointer;
-    border: none;
-    transition: background-color 0.3s;
-  }
-
-  .save-btn {
-    background: #28a745;
-    color: white;
-  }
-
-  .save-btn:hover {
-    background: #218838;
-  }
-
-  .save-btn:disabled {
-    background: #6c757d;
-    cursor: not-allowed;
-  }
-
-  .cancel-btn {
-    background: #6c757d;
-    color: white;
-  }
-
-  .cancel-btn:hover {
-    background: #5a6268;
   }
 
   /* Stats */
@@ -1365,25 +703,6 @@
     background: #c82333;
   }
 
-  .disabled-field {
-    background-color: #f8f9fa !important;
-    color: #6c757d !important;
-    cursor: not-allowed !important;
-    border-color: #e9ecef !important;
-  }
-
-  .disabled-field:focus {
-    border-color: #e9ecef !important;
-    box-shadow: none !important;
-  }
-
-  .field-note {
-    color: #6c757d;
-    font-size: 0.85rem;
-    margin-top: 0.25rem;
-    font-style: italic;
-  }
-
   /* Responsive */
   @media (max-width: 768px) {
     .account-container {
@@ -1396,46 +715,7 @@
       align-items: flex-start;
     }
 
-    .info-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .info-item label {
-      min-width: auto;
-    }
-
-    .info-item span {
-      text-align: left;
-    }
-
-    .form-actions {
-      justify-content: center;
-    }
-
     .action-buttons {
-      justify-content: center;
-    }
-
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .students-table-container {
-      font-size: 0.9rem;
-    }
-
-    .students-table th,
-    .students-table td {
-      padding: 0.5rem;
-    }
-
-    .role-status {
-      flex-direction: column;
-    }
-
-    .roles-list ul {
       justify-content: center;
     }
   }
