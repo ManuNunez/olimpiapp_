@@ -5,11 +5,9 @@
 	let contests = [];
 	let loading = true;
 	let error = null;
-	let searchQuery = '';
 	let currentPage = 1;
 	let totalPages = 1;
 	let perPage = 10;
-	let timeoutId;
 	let userProfile = null;
 	
 	// Verificar si existe user_profile en localStorage
@@ -54,60 +52,12 @@
         loading = false;
     }
 }
-
-	
-	// Función para buscar contests con estatus 1
-	async function searchContests() {
-		loading = true;
-		error = null;
-		
-		try {
-			const params = new URLSearchParams({
-				status: '1' // Solo contests con estatus 1
-			});
-			if (searchQuery.trim()) params.append('query', searchQuery.trim());
-			
-			const API_BASE_URL = 'http://localhost:8000'; // Cambia por la URL de tu Laravel
-			const response = await fetch(`${API_BASE_URL}/api/contests?${params}`, {
-				method: 'GET',
-				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token')}`,
-					'Content-Type': 'application/json'
-				}
-			});
-			
-			if (!response.ok) {
-				throw new Error('Error en la búsqueda');
-			}
-			
-			const data = await response.json();
-			// Filtrar por estatus 1
-			contests = (data.contests || []).filter(contest => contest.status === 1 || contest.status === '1');
-			currentPage = 1;
-			totalPages = 1;
-		} catch (err) {
-			error = err.message;
-			console.error('Error:', err);
-		} finally {
-			loading = false;
-		}
-	}
-	
-	// Función para limpiar filtros
-	function clearFilters() {
-		searchQuery = '';
-		loadContests();
-	}
 	
 	// Función para cambiar de página
 	function changePage(page) {
 		if (page >= 1 && page <= totalPages) {
 			currentPage = page;
-			if (searchQuery) {
-				searchContests();
-			} else {
-				loadContests(page);
-			}
+			loadContests(page);
 		}
 	}
 	
@@ -150,14 +100,6 @@
 		checkUserProfile();
 		loadContests();
 	});
-
-	// Reactividad para búsqueda automática con debounce
-	$: {
-		if (timeoutId) clearTimeout(timeoutId);
-		if (searchQuery) {
-			timeoutId = setTimeout(searchContests, 500);
-		}
-	}
 </script>
 
 <svelte:head>
@@ -170,24 +112,6 @@
 	<div class="header-content">
 		<h1>Contests Disponibles</h1>
 		<p>Descubre y participa en las olimpiadas académicas abiertas</p>
-	</div>
-</section>
-
-<!-- Search Section -->
-<section class="search-section">
-	<div class="search-container">
-		<div class="search-group">
-			<input
-				type="text"
-				placeholder="Buscar contests disponibles..."
-				bind:value={searchQuery}
-				class="search-input"
-			/>
-		</div>
-		
-		<button class="btn btn-secondary" on:click={clearFilters}>
-			🗑️ Limpiar
-		</button>
 	</div>
 </section>
 
@@ -210,7 +134,7 @@
 		<div class="empty-state">
 			<h3>No hay contests disponibles</h3>
 			<p>Actualmente no hay contests abiertos para inscripción.</p>
-			<button class="btn btn-secondary" on:click={clearFilters}>
+			<button class="btn btn-secondary" on:click={loadContests}>
 				Actualizar
 			</button>
 		</div>
@@ -316,41 +240,6 @@
 		margin-left: auto;
 		margin-right: auto;
 		line-height: 1.6;
-	}
-	
-	/* Search Section */
-	.search-section {
-		padding: 2rem;
-		background-color: #ffffff;
-		border-bottom: 1px solid #dee2e6;
-	}
-	
-	.search-container {
-		display: flex;
-		gap: 1rem;
-		align-items: center;
-		max-width: 800px;
-		margin: 0 auto;
-		flex-wrap: wrap;
-	}
-	
-	.search-group {
-		flex: 1;
-		min-width: 300px;
-	}
-	
-	.search-input {
-		width: 100%;
-		padding: 0.75rem 1rem;
-		border: 2px solid #dee2e6;
-		border-radius: 8px;
-		font-size: 1rem;
-		transition: border-color 0.3s ease;
-	}
-	
-	.search-input:focus {
-		outline: none;
-		border-color: #007bff;
 	}
 	
 	/* Content Section */
@@ -589,15 +478,6 @@
 		
 		.header-content p {
 			font-size: 1rem;
-		}
-		
-		.search-container {
-			flex-direction: column;
-			align-items: stretch;
-		}
-		
-		.search-group {
-			min-width: auto;
 		}
 		
 		.contests-content {

@@ -1,180 +1,311 @@
 <script>
-	export let contest;
+  export let contest;
 
-	let showRegistrationForm = false;
+  let showModal = false;
+  let selectedCampus = '';
+  let selectedGrade = '';
+  let studentId = null;
+$: console.log('Contest actualizado:', contest);
 
-	function formatDate(dateString) {
-		const date = new Date(dateString);
-		return date.toLocaleDateString('es-MX', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-	}
+  const grades = [
+    { value: '1', label: '1° a 5° de Primaria' },
+    { value: '2', label: '6° de Primaria' },
+    { value: '3', label: '1° de Secundaria' },
+    { value: '4', label: '2° de Secundaria' },
+    { value: '5', label: '3° de Secundaria' },
+    { value: '6', label: 'Preparatoria' }
+  ];
 
-	function getContestStatus(contest) {
-		const now = new Date();
-		const startTime = new Date(contest.date);
-		const endTime = new Date(startTime.getTime() + (contest.duration * 60 * 1000));
-		
-		if (now < startTime) {
-			return { status: 'upcoming', label: 'Próximo', class: 'status-upcoming' };
-		} else if (now >= startTime && now <= endTime) {
-			return { status: 'ongoing', label: 'En curso', class: 'status-ongoing' };
-		} else {
-			return { status: 'finished', label: 'Finalizado', class: 'status-finished' };
-		}
-	}
+  function openRegistrationModal() {
+    const profile = checkUserProfile();
+    if (!profile) {
+      alert('Debes completar tu perfil y estar autenticado para inscribirte');
+      return;
+    }
+    studentId = profile.id;
+    showModal = true;
+    selectedCampus = '';
+    selectedGrade = '';
+  }
 
-	function formatDuration(minutes) {
-		const hours = Math.floor(minutes / 60);
-		const remainingMinutes = minutes % 60;
-		return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
-	}
+  function closeModal() {
+    showModal = false;
+  }
 
-	$: contestStatus = getContestStatus(contest);
+  async function submitRegistration(e) {
+    e.preventDefault();
+    if (!selectedCampus || !selectedGrade) {
+      alert('Por favor selecciona campus y nivel');
+      return;
+    }
 
-	function toggleRegistrationForm() {
-		showRegistrationForm = !showRegistrationForm;
-	}
+    try {
+      const registrationData = {
+        contest_id: contest.id,
+        student_id: studentId,
+        campus_id: selectedCampus,
+        grade: selectedGrade
+      };
 
-	function submitRegistration(e) {
-		e.preventDefault();
-		// Aquí iría la lógica para enviar el formulario
-		alert(`Te has inscrito en ${contest.name}`);
-		showRegistrationForm = false;
-	}
+      const API_BASE_URL = 'http://127.0.0.1:8000';
+      const response = await fetch(`${API_BASE_URL}/api/participations`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(registrationData)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Error ${response.status}`);
+      }
+
+      const result = await response.json();
+      alert(`¡Inscripción exitosa en ${contest.name}!`);
+      closeModal();
+
+      window.dispatchEvent(new CustomEvent('contestRegistration', { 
+        detail: { contestId: contest.id, result } 
+      }));
+
+    } catch (error) {
+      console.error('Error en inscripción:', error);
+      alert(`Error al inscribirse: ${error.message}`);
+    }
+  }
+
+  function checkUserProfile() {
+    try {
+      const profile = localStorage.getItem('user_profile');
+      const token = localStorage.getItem('auth_token');
+      return profile && token ? JSON.parse(profile) : null;
+    } catch (err) {
+      console.error('Error parsing user_profile:', err);
+      return null;
+    }
+  }
+
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function formatDuration(minutes) {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
+  }
 </script>
 
-{#if contest.status !== 0}
+
 <div class="contest-card">
-	<div class="contest-header">
-		<div class="contest-title-section">
-			<h3 class="contest-title">{contest.name}</h3>
-			<span class="contest-status {contestStatus.class}">
-				{contestStatus.label}
-			</span>
-		</div>
-		<div class="contest-meta">
-			<span class="contest-date">{formatDate(contest.date)}</span>
-			<span class="contest-duration">⏱️ {formatDuration(contest.duration)}</span>
-		</div>
-	</div>
+  <div class="contest-header">
+    <div class="contest-title-section">
+      <h3 class="contest-title">{contest.name}</h3>
+    </div>
+    <div class="contest-meta">
+      <span class="contest-date">{formatDate(contest.date)}</span>
+      <span class="contest-duration">⏱️ {formatDuration(contest.duration)}</span>
+    </div>
+  </div>
 
-	{#if contest.description}
-		<div class="contest-description">
-			<p>{contest.description}</p>
-		</div>
-	{/if}
+  {#if contest.description}
+    <div class="contest-description">
+      <p>{contest.description}</p>
+    </div>
+  {/if}
 
-	<div class="contest-details">
-		<div class="detail-item">
-			<span class="detail-label">Preguntas:</span>
-			<span class="detail-value">{contest.number_of_questions}</span>
-		</div>
+  <div class="contest-actions mt-4">
+    <button 
+      on:click={openRegistrationModal} 
+      class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-all"
+    >
+      📝 Inscribirse
+    </button>
+  </div>
+</div>
 
-		{#if contest.campuses && contest.campuses.length > 0}
-			<div class="detail-item">
-				<span class="detail-label">Campus:</span>
-				<div class="tags">
-					{#each contest.campuses as campus}
-						<span class="tag campus-tag">{campus.name}</span>
-					{/each}
-				</div>
-			</div>
-		{/if}
 
-		{#if contest.classrooms && contest.classrooms.length > 0}
-			<div class="detail-item">
-				<span class="detail-label">Aulas:</span>
-				<div class="tags">
-					{#each contest.classrooms as classroom}
-						<span class="tag classroom-tag">{classroom.name}</span>
-					{/each}
-				</div>
-			</div>
-		{/if}
+<!-- Modal -->
+{#if showModal}
+<div class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Inscripción a {contest.name}</h3>
+      <button class="close-btn" on:click={closeModal}>&times;</button>
+    </div>
+    <form class="registration-form" on:submit|preventDefault={submitRegistration}>
+      <div class="form-group">
+        <label>Campus</label>
+        <select bind:value={selectedCampus}>
+          <option value="">-- Selecciona un campus --</option>
+          {#each contest.campuses || [] as campus}
+            <option value={campus.id}>{campus.name}</option>
+          {/each}
+        </select>
+      </div>
 
-		{#if contest.participations}
-			<div class="detail-item">
-				<span class="detail-label">Participantes:</span>
-				<span class="detail-value">{contest.participations.length}</span>
-			</div>
-		{/if}
-	</div>
+      <div class="form-group">
+        <label>Nivel</label>
+        <select bind:value={selectedGrade}>
+          <option value="">-- Selecciona un nivel --</option>
+          {#each grades as grade}
+            <option value={grade.value}>{grade.label}</option>
+          {/each}
+        </select>
+      </div>
 
-	<div class="contest-actions">
-		<button class="btn btn-primary" on:click={() => window.location.href = `/admin/contests/${contest.id}`}>
-			Ver Detalles
-		</button>
-		<button class="btn btn-secondary" on:click={() => window.location.href = `/admin/contests/${contest.id}/edit`}>
-			Editar
-		</button>
-		{#if contestStatus.status === 'upcoming'}
-			<button class="btn btn-danger" on:click={() => {
-				if (confirm('¿Estás seguro de que deseas eliminar este contest?')) {
-					console.log('Eliminar contest:', contest.id);
-				}
-			}}>
-				Eliminar
-			</button>
-		{/if}
-		<button class="btn btn-success" on:click={toggleRegistrationForm}>
-			{showRegistrationForm ? 'Cerrar Inscripción' : 'Inscribirse'}
-		</button>
-	</div>
-
-	{#if showRegistrationForm}
-		<form class="registration-form" on:submit|preventDefault={submitRegistration}>
-			<div class="form-group">
-				<label>Nombre completo:</label>
-				<input type="text" required />
-			</div>
-			<div class="form-group">
-				<label>Correo electrónico:</label>
-				<input type="email" required />
-			</div>
-			<button type="submit" class="btn btn-primary">Enviar inscripción</button>
-		</form>
-	{/if}
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" on:click={closeModal}>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar</button>
+      </div>
+    </form>
+  </div>
 </div>
 {/if}
 
 <style>
-	/* Estilos del formulario */
-	.registration-form {
-		margin-top: 1rem;
+	/* Modal styles */
+	.modal-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 1000;
 		padding: 1rem;
-		background-color: #f9f9f9;
-		border: 1px solid #ddd;
+	}
+	
+	.modal-content {
+		background: white;
+		border-radius: 12px;
+		width: 100%;
+		max-width: 500px;
+		max-height: 90vh;
+		overflow-y: auto;
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+	}
+	
+	.modal-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1.5rem;
+		border-bottom: 1px solid #eee;
+	}
+	
+	.modal-header h3 {
+		margin: 0;
+		color: #333;
+		font-size: 1.25rem;
+	}
+	
+	.close-btn {
+		background: none;
+		border: none;
+		font-size: 2rem;
+		cursor: pointer;
+		color: #666;
+		padding: 0;
+		width: 2rem;
+		height: 2rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		transition: all 0.3s ease;
+	}
+	
+	.close-btn:hover {
+		background-color: #f0f0f0;
+		color: #333;
+	}
+	
+	.registration-form {
+		padding: 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	
+	.form-group label {
+		font-weight: 600;
+		color: #333;
+		font-size: 0.9rem;
+	}
+	
+	.form-group input,
+	.form-group select {
+		padding: 0.75rem;
 		border-radius: 8px;
+		border: 2px solid #e1e5e9;
+		font-size: 1rem;
+		transition: border-color 0.3s ease;
+	}
+	
+	.form-group input:focus,
+	.form-group select:focus {
+		outline: none;
+		border-color: #4CAF50;
+		box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+	}
+	
+	.modal-actions {
 		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
+		gap: 1rem;
+		margin-top: 1rem;
+		justify-content: flex-end;
 	}
-	.registration-form .form-group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
+	
+	/* Status styles actualizados */
+	.status-available {
+		background-color: #e8f5e8;
+		color: #2e7d32;
 	}
-	.registration-form input {
-		padding: 0.5rem;
-		border-radius: 6px;
-		border: 1px solid #ccc;
+	
+	.status-closed {
+		background-color: #ffebee;
+		color: #c62828;
 	}
+	
+	.status-hidden {
+		background-color: #f5f5f5;
+		color: #757575;
+	}
+	
+	/* Estilos existentes */
 	.btn-success {
-		background-color: #388e3c;
+		background-color: #4CAF50;
 		color: white;
+		border: none;
 	}
+	
 	.btn-success:hover {
-		background-color: #2e7d32;
+		background-color: #45a049;
 		transform: translateY(-1px);
 	}
+	
 	.contest-card {
-		background: var(--color-surface);
-		border: 2px solid var(--color-border);
+		background: var(--color-surface, white);
+		border: 2px solid var(--color-border, #e1e5e9);
 		border-radius: 12px;
 		padding: 1.5rem;
 		margin-bottom: 1rem;
@@ -183,7 +314,7 @@
 	}
 	
 	.contest-card:hover {
-		border-color: var(--color-primary);
+		border-color: var(--color-primary, #4CAF50);
 		transform: translateY(-2px);
 		box-shadow: 0 8px 20px rgba(59, 57, 54, 0.15);
 	}
@@ -205,7 +336,7 @@
 	}
 	
 	.contest-title {
-		color: var(--color-text);
+		color: var(--color-text, #333);
 		margin: 0;
 		font-size: 1.5rem;
 		font-weight: 600;
@@ -240,7 +371,7 @@
 		align-items: flex-end;
 		gap: 0.25rem;
 		font-size: 0.875rem;
-		color: var(--color-text-secondary);
+		color: var(--color-text-secondary, #666);
 	}
 	
 	.contest-date {
@@ -256,13 +387,13 @@
 	.contest-description {
 		margin-bottom: 1rem;
 		padding: 1rem;
-		background-color: var(--color-light-gray);
+		background-color: var(--color-light-gray, #f8f9fa);
 		border-radius: 8px;
 	}
 	
 	.contest-description p {
 		margin: 0;
-		color: var(--color-text-secondary);
+		color: var(--color-text-secondary, #666);
 		line-height: 1.6;
 	}
 	
@@ -282,12 +413,12 @@
 	
 	.detail-label {
 		font-weight: 600;
-		color: var(--color-text);
+		color: var(--color-text, #333);
 		min-width: 100px;
 	}
 	
 	.detail-value {
-		color: var(--color-text-secondary);
+		color: var(--color-text-secondary, #666);
 		font-weight: 500;
 	}
 	
@@ -334,24 +465,24 @@
 	}
 	
 	.btn-primary {
-		background-color: var(--color-primary);
-		color: var(--color-surface);
+		background-color: var(--color-primary, #4CAF50);
+		color: var(--color-surface, white);
 	}
 	
 	.btn-primary:hover {
-		background-color: var(--color-hover);
+		background-color: var(--color-hover, #45a049);
 		transform: translateY(-1px);
 	}
 	
 	.btn-secondary {
 		background-color: transparent;
-		color: var(--color-primary);
-		border: 2px solid var(--color-primary);
+		color: var(--color-primary, #4CAF50);
+		border: 2px solid var(--color-primary, #4CAF50);
 	}
 	
 	.btn-secondary:hover {
-		background-color: var(--color-primary);
-		color: var(--color-surface);
+		background-color: var(--color-primary, #4CAF50);
+		color: var(--color-surface, white);
 	}
 	
 	.btn-danger {
@@ -366,6 +497,13 @@
 	
 	/* Responsive */
 	@media (max-width: 768px) {
+		.modal-content {
+			margin: 0;
+			border-radius: 0;
+			height: 100vh;
+			max-height: 100vh;
+		}
+		
 		.contest-header {
 			flex-direction: column;
 			align-items: flex-start;
@@ -395,6 +533,10 @@
 		
 		.detail-label {
 			min-width: auto;
+		}
+		
+		.modal-actions {
+			flex-direction: column;
 		}
 	}
 </style>
