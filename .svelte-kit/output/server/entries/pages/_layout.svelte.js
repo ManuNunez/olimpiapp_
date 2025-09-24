@@ -16,12 +16,12 @@ const page$1 = {
 const page = page$1;
 function Header($$payload, $$props) {
   push();
-  $$payload.out += `<header class="svelte-1nkx1ne"><div class="logo svelte-1nkx1ne"><a href="/" class="svelte-1nkx1ne"><span class="logo-icon svelte-1nkx1ne">🏆</span> <span class="logo-text svelte-1nkx1ne">OlimpiApp</span></a></div> <nav class="svelte-1nkx1ne"><ul class="svelte-1nkx1ne"><li${attr("aria-current", page.url.pathname === "/" ? "page" : void 0)} class="svelte-1nkx1ne"><a href="/" class="svelte-1nkx1ne">Inicio</a></li> `;
+  $$payload.out += `<header class="svelte-1ydyov6"><div class="logo svelte-1ydyov6"><a href="/" class="svelte-1ydyov6"><span class="logo-icon svelte-1ydyov6">🏆</span> <span class="logo-text svelte-1ydyov6">OlimpiApp</span></a></div> <nav class="svelte-1ydyov6"><ul class="svelte-1ydyov6"><li${attr("aria-current", page.url.pathname === "/" ? "page" : void 0)} class="svelte-1ydyov6"><a href="/" class="svelte-1ydyov6">Inicio</a></li> `;
   {
     $$payload.out += "<!--[!-->";
-    $$payload.out += `<li${attr("aria-current", page.url.pathname === "/login" ? "page" : void 0)} class="svelte-1nkx1ne"><a href="/login" class="svelte-1nkx1ne">Iniciar Sesión</a></li> <li${attr("aria-current", page.url.pathname === "/signup" ? "page" : void 0)} class="svelte-1nkx1ne"><a href="/signup" class="svelte-1nkx1ne">Registrarse</a></li>`;
+    $$payload.out += `<li${attr("aria-current", page.url.pathname === "/login" ? "page" : void 0)} class="svelte-1ydyov6"><a href="/login" class="svelte-1ydyov6">Iniciar Sesión</a></li> <li${attr("aria-current", page.url.pathname === "/signup" ? "page" : void 0)} class="svelte-1ydyov6"><a href="/signup" class="svelte-1ydyov6">Registrarse</a></li>`;
   }
-  $$payload.out += `<!--]--></ul></nav> <div class="user-actions svelte-1nkx1ne">`;
+  $$payload.out += `<!--]--></ul></nav> <div class="user-actions svelte-1ydyov6">`;
   {
     $$payload.out += "<!--[!-->";
   }

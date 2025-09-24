@@ -5,10 +5,10 @@ function _page($$payload, $$props) {
   head($$payload, ($$payload2) => {
     $$payload2.title = `<title>Mi Cuenta - OlimpiApp</title>`;
   });
-  $$payload.out += `<div class="account-container svelte-d6bq0g"><div class="account-header svelte-d6bq0g"><h1 class="svelte-d6bq0g">Mi Cuenta</h1> <button class="logout-btn svelte-d6bq0g">Cerrar Sesión</button></div> `;
+  $$payload.out += `<div class="account-container svelte-101e3si"><div class="account-header svelte-101e3si"><h1 class="svelte-101e3si">Mi Cuenta</h1> <button class="logout-btn svelte-101e3si">Cerrar Sesión</button></div> `;
   {
     $$payload.out += "<!--[-->";
-    $$payload.out += `<div class="loading-container svelte-d6bq0g"><div class="loading-spinner svelte-d6bq0g"></div> <p class="svelte-d6bq0g">Cargando información del usuario...</p></div>`;
+    $$payload.out += `<div class="loading-container svelte-101e3si"><div class="loading-spinner svelte-101e3si"></div> <p class="svelte-101e3si">Cargando información del usuario...</p></div>`;
   }
   $$payload.out += `<!--]--></div>`;
   pop();

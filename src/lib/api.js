@@ -51,31 +51,86 @@ export function del(endpoint) {
   return apiRequest(endpoint, { method: 'DELETE' });
 }
 
+export function patch(endpoint, data = {}) {
+  return apiRequest(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  });
+}
+
 export const ROLES = {
   STUDENT: 2,
   TEACHER: 3,
 };
 
+// Función para obtener el usuario actual del localStorage
+function getCurrentUser() {
+  try {
+    const userString = localStorage.getItem('current_user');
+    return userString ? JSON.parse(userString) : null;
+  } catch (error) {
+    console.error('Error parsing current user:', error);
+    return null;
+  }
+}
+
+// Función para guardar el usuario actual en localStorage
+function setCurrentUser(user) {
+  if (user) {
+    localStorage.setItem('current_user', JSON.stringify(user));
+  } else {
+    localStorage.removeItem('current_user');
+  }
+}
+
 export const auth = {
   login: async (credentials) => {
-    const response = await post('/login', credentials);
-    if (response.access_token) {
-      localStorage.setItem('auth_token', response.access_token);
+    try {
+      const response = await post('/login', credentials);
+      if (response.access_token) {
+        localStorage.setItem('auth_token', response.access_token);
+        // Obtener y guardar los datos del usuario después del login
+        try {
+          const user = await get('/me');
+          setCurrentUser(user);
+        } catch (userError) {
+          console.error('Error fetching user data after login:', userError);
+        }
+      }
+      return response;
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw error;
     }
-    return response;
   },
 
   register: async (userData) => {
     const response = await post('/register', userData);
     if (response.access_token) {
       localStorage.setItem('auth_token', response.access_token);
+      // Obtener y guardar los datos del usuario después del registro
+      try {
+        const user = await get('/me');
+        setCurrentUser(user);
+      } catch (userError) {
+        console.error('Error fetching user data after register:', userError);
+      }
     }
     return response;
   },
 
   logout: async () => {
-    await post('/logout');
-    localStorage.removeItem('auth_token');
+    try {
+      await post('/logout');
+    } catch (error) {
+      console.error('Error during logout:', error);
+    } finally {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('current_user');
+      localStorage.removeItem('student_profile');
+      setCurrentUser(null); // Limpiar el usuario actual
+      
+    }
   },
 
   isLoggedIn: () => {
@@ -86,12 +141,100 @@ export const auth = {
     return localStorage.getItem('auth_token');
   },
 
+  getCurrentUser,
+
   me: async () => {
-    return await get('/me');
+    try {
+      const user = await get('/me');
+      setCurrentUser(user); // Guardar el usuario actual
+      return user;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      throw error;
+    }
   },
 
   updateProfile: async (userData) => {
-    return await put('/me', userData);
+    try {
+      const response = await put('/me', userData);
+      // Actualizar el usuario guardado en localStorage
+      const currentUser = getCurrentUser();
+      if (currentUser && response) {
+        // Si la respuesta tiene estructura { success: true, data: user }
+        const updatedUserData = response.data || response;
+        const updatedUser = { ...currentUser, ...updatedUserData };
+        setCurrentUser(updatedUser);
+        return updatedUserData;
+      }
+      return response.data || response;
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  },
+
+  // Nuevas funciones para gestión de usuarios
+  getUser: async (userId) => {
+    try {
+      const response = await get(`/users/${userId}`);
+      return response.data || response; // Ajustar según la estructura de respuesta
+    } catch (error) {
+      console.error('Error getting user:', error);
+      throw new Error('Error al obtener el usuario: ' + error.message);
+    }
+  },
+
+  getUsers: async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams(params).toString();
+      const endpoint = `/users${queryParams ? `?${queryParams}` : ''}`;
+      const response = await get(endpoint);
+      return response;
+    } catch (error) {
+      console.error('Error getting users:', error);
+      throw new Error('Error al obtener los usuarios: ' + error.message);
+    }
+  },
+
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await put(`/users/${userId}`, userData);
+      if (!response.success) {
+        throw new Error(response.message || 'Error al actualizar el usuario');
+      }
+      return response;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Error al actualizar el usuario: ' + error.message);
+    }
+  },
+
+  deleteUser: async (userId) => {
+    try {
+      const response = await del(`/users/${userId}`);
+      if (!response.success) {
+        throw new Error(response.message || 'Error al desactivar el usuario');
+      }
+      return response;
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error('Error al desactivar el usuario: ' + error.message);
+    }
+  },
+
+  restoreUser: async (userId) => {
+    try {
+      const response = await apiRequest(`/users/${userId}/restore`, {
+        method: 'PATCH'
+      });
+      if (!response.success) {
+        throw new Error(response.message || 'Error al reactivar el usuario');
+      }
+      return response;
+    } catch (error) {
+      console.error('Error restoring user:', error);
+      throw new Error('Error al reactivar el usuario: ' + error.message);
+    }
   },
 
   getUserRoles: async (userId) => {

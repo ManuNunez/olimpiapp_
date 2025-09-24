@@ -158,7 +158,7 @@
       "_client.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.Dcm70ITb.css"
+      "_app/immutable/assets/_layout.DpV_gtRR.css"
     ],
     "assets": [
       "_app/immutable/assets/fira-mono-cyrillic-ext-400-normal.FAIU8e3o.woff2",
@@ -205,7 +205,20 @@
       "_client.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CHXzYezZ.css"
+      "_app/immutable/assets/_page.C3v3fWRf.css"
+    ]
+  },
+  "src/routes/contests/+page.svelte": {
+    "file": "entries/pages/contests/_page.svelte.js",
+    "name": "entries/pages/contests/_page.svelte",
+    "src": "src/routes/contests/+page.svelte",
+    "isEntry": true,
+    "imports": [
+      "_index.js",
+      "_attributes.js"
+    ],
+    "css": [
+      "_app/immutable/assets/_page.0WquiqYr.css"
     ]
   },
   "src/routes/help/+page.svelte": {
