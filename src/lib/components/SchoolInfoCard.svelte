@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy } from "svelte";
 
-  export let apiBaseUrl = "http://localhost:8000/api";
+  export let apiBaseUrl = 
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
   // Estado de autenticación
   let token = "";
