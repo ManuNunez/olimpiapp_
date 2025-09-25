@@ -27,6 +27,7 @@
  */
 declare module '$env/static/private' {
 	export const VITE_API_BASE_URL: string;
+	export const TMUX: string;
 	export const USER: string;
 	export const npm_config_user_agent: string;
 	export const XDG_SEAT: string;
@@ -35,12 +36,13 @@ declare module '$env/static/private' {
 	export const SHLVL: string;
 	export const npm_config_noproxy: string;
 	export const HOME: string;
-	export const OLDPWD: string;
 	export const LESS: string;
+	export const OLDPWD: string;
 	export const DESKTOP_SESSION: string;
+	export const TERM_PROGRAM_VERSION: string;
 	export const npm_package_json: string;
-	export const ZSH: string;
 	export const LSCOLORS: string;
+	export const ZSH: string;
 	export const GTK_MODULES: string;
 	export const PAGER: string;
 	export const npm_config_userconfig: string;
@@ -54,8 +56,8 @@ declare module '$env/static/private' {
 	export const GTK_IM_MODULE: string;
 	export const LOGNAME: string;
 	export const WINDOWID: string;
-	export const _P9K_SSH_TTY: string;
 	export const _: string;
+	export const _P9K_SSH_TTY: string;
 	export const npm_config_prefix: string;
 	export const XDG_SESSION_CLASS: string;
 	export const ALACRITTY_LOG: string;
@@ -73,10 +75,11 @@ declare module '$env/static/private' {
 	export const DISPLAY: string;
 	export const LANG: string;
 	export const XDG_CURRENT_DESKTOP: string;
+	export const LS_COLORS: string;
+	export const TERM_PROGRAM: string;
 	export const XAUTHORITY: string;
 	export const XDG_SESSION_DESKTOP: string;
 	export const XMODIFIERS: string;
-	export const LS_COLORS: string;
 	export const npm_lifecycle_script: string;
 	export const SSH_AUTH_SOCK: string;
 	export const SHELL: string;
@@ -100,6 +103,7 @@ declare module '$env/static/private' {
 	export const npm_config_global_prefix: string;
 	export const npm_command: string;
 	export const I3SOCK: string;
+	export const TMUX_PANE: string;
 	export const INIT_CWD: string;
 	export const EDITOR: string;
 	export const NODE_ENV: string;
@@ -135,6 +139,7 @@ declare module '$env/static/public' {
 declare module '$env/dynamic/private' {
 	export const env: {
 		VITE_API_BASE_URL: string;
+		TMUX: string;
 		USER: string;
 		npm_config_user_agent: string;
 		XDG_SEAT: string;
@@ -143,12 +148,13 @@ declare module '$env/dynamic/private' {
 		SHLVL: string;
 		npm_config_noproxy: string;
 		HOME: string;
-		OLDPWD: string;
 		LESS: string;
+		OLDPWD: string;
 		DESKTOP_SESSION: string;
+		TERM_PROGRAM_VERSION: string;
 		npm_package_json: string;
-		ZSH: string;
 		LSCOLORS: string;
+		ZSH: string;
 		GTK_MODULES: string;
 		PAGER: string;
 		npm_config_userconfig: string;
@@ -162,8 +168,8 @@ declare module '$env/dynamic/private' {
 		GTK_IM_MODULE: string;
 		LOGNAME: string;
 		WINDOWID: string;
-		_P9K_SSH_TTY: string;
 		_: string;
+		_P9K_SSH_TTY: string;
 		npm_config_prefix: string;
 		XDG_SESSION_CLASS: string;
 		ALACRITTY_LOG: string;
@@ -181,10 +187,11 @@ declare module '$env/dynamic/private' {
 		DISPLAY: string;
 		LANG: string;
 		XDG_CURRENT_DESKTOP: string;
+		LS_COLORS: string;
+		TERM_PROGRAM: string;
 		XAUTHORITY: string;
 		XDG_SESSION_DESKTOP: string;
 		XMODIFIERS: string;
-		LS_COLORS: string;
 		npm_lifecycle_script: string;
 		SSH_AUTH_SOCK: string;
 		SHELL: string;
@@ -208,6 +215,7 @@ declare module '$env/dynamic/private' {
 		npm_config_global_prefix: string;
 		npm_command: string;
 		I3SOCK: string;
+		TMUX_PANE: string;
 		INIT_CWD: string;
 		EDITOR: string;
 		NODE_ENV: string;

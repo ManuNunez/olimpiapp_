@@ -1,6 +1,7 @@
 <script>
 	// Página principal de listado de contests disponibles para inscripción
 	import { onMount } from 'svelte';
+	import Contest from '$lib/components/Contest.svelte';
 	
 	let contests = [];
 	let loading = true;
@@ -22,83 +23,68 @@
 	}
 	
 	async function loadContests() {
-    loading = true;
-    error = null;
+		loading = true;
+		error = null;
 
-    try {
-        const params = new URLSearchParams({
-            status: '1',
-        });
+		try {
+			const params = new URLSearchParams({
+				status: '1',
+			});
 
-        const API_BASE_URL = 'http://127.0.0.1:8000';
-        const response = await fetch(`${API_BASE_URL}/api/contests?${params}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                'Content-Type': 'application/json'
-            }
-        });
+			const API_BASE_URL = 'http://127.0.0.1:8000';
+			const response = await fetch(`${API_BASE_URL}/api/contests?${params}`, {
+				headers: {
+					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+					'Content-Type': 'application/json'
+				}
+			});
 
-        if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+			if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
-        const data = await response.json();
+			const data = await response.json();
+			
+			// Filtrar contests con status 1
+			contests = (data.contests || []).filter(contest => {
+				return contest.status === 1 || contest.status === '1';
+			});
+			
+			console.log('Contests cargados:', contests.length);
 
-        // Tu API devuelve directamente array en data.contests
-        contests = (data.contests || []).filter(contest => contest.status === 1);
-
-    } catch (err) {
-        console.error(err);
-        error = err.message;
-    } finally {
-        loading = false;
-    }
-}
+		} catch (err) {
+			console.error('ERROR EN loadContests:', err);
+			error = err.message;
+		} finally {
+			loading = false;
+		}
+	}
 	
 	// Función para cambiar de página
 	function changePage(page) {
 		if (page >= 1 && page <= totalPages) {
 			currentPage = page;
-			loadContests(page);
+			loadContests();
 		}
 	}
 	
-	// Función para manejar la inscripción (comentada por ahora)
-	async function handleInscription(contestId) {
-		if (!userProfile) {
-			alert('Debes completar tu perfil para inscribirte');
-			return;
-		}
-		
-		// TODO: Implementar cuando esté lista la API de inscripción
-		alert('Funcionalidad de inscripción en desarrollo');
-		
-		/*
-		try {
-			const response = await fetch(`/api/contests/${contestId}/register`, {
-				method: 'POST',
-				headers: {
-					'Authorization': `Bearer ${localStorage.getItem('token')}`,
-					'Content-Type': 'application/json'
-				}
-			});
-			
-			if (response.ok) {
-				alert('¡Inscripción exitosa!');
-				loadContests(currentPage);
-			} else {
-				const errorData = await response.json();
-				alert(`Error en la inscripción: ${errorData.message || 'Error desconocido'}`);
-			}
-		} catch (err) {
-			console.error('Error:', err);
-			alert('Error al procesar la inscripción');
-		}
-		*/
+	// Escuchar eventos de inscripción para actualizar la lista
+	function handleContestRegistration(event) {
+		console.log('Contest registration successful:', event.detail);
+		// Recargar contests para actualizar cualquier cambio
+		loadContests();
 	}
 	
 	// Cargar datos al montar el componente
 	onMount(() => {
 		checkUserProfile();
 		loadContests();
+		
+		// Escuchar eventos de inscripción
+		window.addEventListener('contestRegistration', handleContestRegistration);
+		
+		// Limpiar event listener al destruir el componente
+		return () => {
+			window.removeEventListener('contestRegistration', handleContestRegistration);
+		};
 	});
 </script>
 
@@ -141,41 +127,7 @@
 	{:else}
 		<div class="contests-grid">
 			{#each contests as contest (contest.id)}
-				<div class="contest-card">
-					<div class="contest-header">
-						<h3 class="contest-title">{contest.name}</h3>
-						<span class="contest-status">Disponible</span>
-					</div>
-					
-					<div class="contest-body">
-						<p class="contest-description">{contest.description}</p>
-						
-						{#if contest.start_date}
-							<div class="contest-info">
-								<span class="info-label">Fecha de inicio:</span>
-								<span class="info-value">{new Date(contest.start_date).toLocaleDateString('es-MX')}</span>
-							</div>
-						{/if}
-						
-						{#if contest.end_date}
-							<div class="contest-info">
-								<span class="info-label">Fecha de fin:</span>
-								<span class="info-value">{new Date(contest.end_date).toLocaleDateString('es-MX')}</span>
-							</div>
-						{/if}
-					</div>
-					
-					{#if userProfile}
-						<div class="contest-actions">
-							<button 
-								class="btn btn-inscribe" 
-								on:click={() => handleInscription(contest.id)}
-							>
-								Inscribirse
-							</button>
-						</div>
-					{/if}
-				</div>
+				<Contest {contest} />
 			{/each}
 		</div>
 		
@@ -255,100 +207,6 @@
 		grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 		gap: 1.5rem;
 		margin-bottom: 2rem;
-	}
-	
-	.contest-card {
-		background: #ffffff;
-		border: 2px solid #dee2e6;
-		border-radius: 12px;
-		overflow: hidden;
-		transition: all 0.3s ease;
-		box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-	}
-	
-	.contest-card:hover {
-		transform: translateY(-4px);
-		box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-		border-color: #007bff;
-	}
-	
-	.contest-header {
-		padding: 1.5rem 1.5rem 1rem 1.5rem;
-		border-bottom: 1px solid #f8f9fa;
-		display: flex;
-		justify-content: space-between;
-		align-items: flex-start;
-		gap: 1rem;
-	}
-	
-	.contest-title {
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: #212529;
-		margin: 0;
-		flex: 1;
-	}
-	
-	.contest-status {
-		background: #28a745;
-		color: white;
-		padding: 0.25rem 0.75rem;
-		border-radius: 20px;
-		font-size: 0.8rem;
-		font-weight: 500;
-		white-space: nowrap;
-	}
-	
-	.contest-body {
-		padding: 1rem 1.5rem;
-	}
-	
-	.contest-description {
-		color: #6c757d;
-		margin-bottom: 1rem;
-		line-height: 1.5;
-	}
-	
-	.contest-info {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 0.5rem;
-		font-size: 0.9rem;
-	}
-	
-	.info-label {
-		font-weight: 500;
-		color: #495057;
-	}
-	
-	.info-value {
-		color: #6c757d;
-	}
-	
-	.contest-actions {
-		padding: 1rem 1.5rem 1.5rem 1.5rem;
-		border-top: 1px solid #f8f9fa;
-	}
-	
-	.btn-inscribe {
-		width: 100%;
-		background: linear-gradient(135deg, #28a745, #20c997);
-		color: white;
-		padding: 1rem;
-		font-size: 1.1rem;
-		font-weight: 600;
-		border: none;
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.3s ease;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-	}
-	
-	.btn-inscribe:hover {
-		background: linear-gradient(135deg, #218838, #1e9ecb);
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 	}
 	
 	/* Loading State */
@@ -490,15 +348,6 @@
 		
 		.pagination {
 			flex-wrap: wrap;
-		}
-		
-		.contest-header {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-		
-		.contest-status {
-			align-self: flex-end;
 		}
 	}
 </style>
