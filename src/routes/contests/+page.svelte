@@ -32,7 +32,7 @@
 			});
 
 			const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-			const response = await fetch(`${API_BASE_URL}/api/contests?${params}`, {
+			const response = await fetch(`${API_BASE_URL}/contests?${params}`, {
 				headers: {
 					'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
 					'Content-Type': 'application/json'
