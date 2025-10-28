@@ -417,7 +417,7 @@
       />
 
       <!-- Gestión de Alumnos (solo para maestros) -->
-      {#if isTeacher}
+      <!-- {#if isTeacher}
         <StudentsManagementCard 
           {students}
           {isLoadingStudents}
@@ -427,7 +427,7 @@
           onDeleteStudent={handleDeleteStudent}
           onToggleAddForm={handleToggleAddStudentForm}
         />
-      {/if}
+      {/if} -->
 
       <!-- Información de la Escuela (solo para alumnos) -->
       {#if isStudent}
